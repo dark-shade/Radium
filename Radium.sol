@@ -31,9 +31,12 @@ contract Radium is owned{
     
     mapping (address => uint256) public balanceOf;
     mapping (address => bool) public frozenAccount;
+    mapping(address => mapping(address => uint256)) public allowance;
     
     event Transfer(address indexed from, address indexed to, uint256 value);
     event FrozenFunds(address target, bool frozen);
+    event Burn(address indexed from, uint256 value);
+    
     
     function Radium(uint256 initialSupply, string tokenName, string tokenSymbol, uint8 decimalUnits, address centralMinter) public
     {
@@ -78,6 +81,27 @@ contract Radium is owned{
         return true;
     }
 
+    function approve(address _spender, uint256 _value) public returns (bool success){
+        allowance[msg.sender][_spender] = _value;
+        return true;
+    }
+    
+    function approveAnCall(address _spender, uint256 _value, bytes _extraData) public returns(bool success){
+        tokenRecipient spender = tokenRecipient(_spender);
+        if(approve(_spender,_value))
+        {
+            spender.receiveApproval(msg.sender, _ value, this, _extraData);
+            return true;
+        }
+    }
+    
+    function burn(uint256 _value) public returns (bool success){
+        require(balanceOf[msg.sender] >= _value);
+        balanceOf[msg.sender] -= _value;
+        totalSupply -= _value;
+        emit Burn(msg.sender, _value);
+        return true;
+    }
     
     function mintToken(address target, uint256 mintedAmount) onlyOwner{
         balanceOf[target] += mintedAmount;
