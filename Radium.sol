@@ -2,7 +2,7 @@ pragma solidity ^0.4.18;
 
 contract owned{
     address public owner;
-    function owned(){
+    function owned() public{
         owner = msg.sender;
     }
     
@@ -11,7 +11,7 @@ contract owned{
         _;
     }
     
-    function transferOwnership(address newOwner) onlyOwner{
+    function transferOwnership(address newOwner) public onlyOwner{
         owner = newOwner;
     }
 }
@@ -56,7 +56,7 @@ contract Radium is owned{
     function _transfer(address _from, address _to, uint256 _value) internal
     {
         require(_to != 0x0);
-        require(balanceOf[msg.sender] >= _value && balanceOf[_to] + _ value >= balanceOf[_to]);
+        require(balanceOf[msg.sender] >= _value && balanceOf[_to] + _value >= balanceOf[_to]);
         require(!frozenAccount[_from] && ! frozenAccount[_to]);
     
         balanceOf[msg.sender] -= _value;
@@ -90,7 +90,7 @@ contract Radium is owned{
         tokenRecipient spender = tokenRecipient(_spender);
         if(approve(_spender,_value))
         {
-            spender.receiveApproval(msg.sender, _ value, this, _extraData);
+            spender.receiveApproval(msg.sender, _value, this, _extraData);
             return true;
         }
     }
@@ -103,24 +103,24 @@ contract Radium is owned{
         return true;
     }
     
-    function mintToken(address target, uint256 mintedAmount) onlyOwner{
+    function mintToken(address target, uint256 mintedAmount) public onlyOwner{
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
         emit Transfer(0, owner, mintedAmount);
         emit Transfer(owner, target, mintedAmount);
     }
     
-    function freezeAccount(address target, bool freeze) onlyOwner{
+    function freezeAccount(address target, bool freeze) public onlyOwner{
         frozenAccount[target] = freeze;
         emit FrozenFunds(target, freeze);
     }
     
-    function setPrices(unint256 newSellPrice, uint256 newBuyPrice) onlyOwner{
+    function setPrices(unint256 newSellPrice, uint256 newBuyPrice) public onlyOwner{
         sellPrice = newSellPrice;
         buyPrice = newBuyPrice;
     }
     
-    function buy() payable returns (uint amount){
+    function buy() payable public returns (uint amount){
         amount = msg.value / buyPrice;
         require(balanceOf[this] >= amount);
         balanceOf[msg.sender] += amount;
@@ -129,7 +129,7 @@ contract Radium is owned{
         return amount;
     }
     
-    function sell(uint amount) returns (uint revenue){
+    function sell(uint amount) public returns (uint revenue){
         require(balanceOf[msg.sender] >= amount);
         balanceOf[this] += amount;
         balanceOf[msg.sender] -= amount;
@@ -139,15 +139,15 @@ contract Radium is owned{
         return revenue;
     }
     
-    function setMinBalance(uint minimumBalanceInFinney) onlyOwner{
+    function setMinBalance(uint minimumBalanceInFinney) public onlyOwner{
         minBalanceForAccounts = minimumBalanceInFinney * 1 finney;
     }
     
-    function giveBlockReward(){
+    function giveBlockReward() public{
         balanceOf[block.coinbase] += 1;
     }
     
-    function proofOfWork(uint nounce){
+    function proofOfWork(uint nounce) public{
         bytes8 n = bytes8(sha3(nounce, currentChallenge));
         require(n >= bytes8(difficulty));
         
