@@ -16,6 +16,8 @@ contract owned{
     }
 }
 
+interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
+
 contract Radium is owned{
     string public name;
     string public symbol;
@@ -25,7 +27,7 @@ contract Radium is owned{
     uint256 public buyPrice;
     uint public minBalanceForAccounts;
     
-    byte32 public currentChallenge;
+    bytes32 public currentChallenge;
     uint public timeOfLastProof;
     uint public difficulty = 10**32;
     
@@ -60,7 +62,7 @@ contract Radium is owned{
         require(!frozenAccount[_from] && ! frozenAccount[_to]);
     
         balanceOf[msg.sender] -= _value;
-        balaceOf[_to] += _value;
+        balanceOf[_to] += _value;
         
         emit Transfer(msg.sender, _to, _value);
         
@@ -115,7 +117,7 @@ contract Radium is owned{
         emit FrozenFunds(target, freeze);
     }
     
-    function setPrices(unint256 newSellPrice, uint256 newBuyPrice) public onlyOwner{
+    function setPrices(uint256 newSellPrice, uint256 newBuyPrice) public onlyOwner{
         sellPrice = newSellPrice;
         buyPrice = newBuyPrice;
     }
@@ -148,7 +150,7 @@ contract Radium is owned{
     }
     
     function proofOfWork(uint nounce) public{
-        bytes8 n = bytes8(sha3(nounce, currentChallenge));
+        bytes8 n = bytes8(keccak256(nounce, currentChallenge));
         require(n >= bytes8(difficulty));
         
         uint timeSinceLastProof = (now - timeOfLastProof);
@@ -158,6 +160,6 @@ contract Radium is owned{
         difficulty = difficulty * 10 minutes / timeSinceLastProof + 1;
         
         timeOfLastProof = now;
-        currentChallenge = sha3(nounce, currentChallenge, block.blockhash(block.number - 1));
+        currentChallenge = keccak256(nounce, currentChallenge, block.blockhash(block.number - 1));
     }
 }
